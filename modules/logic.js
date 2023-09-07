@@ -1,8 +1,8 @@
 import createElements from "./createElements.js";
 const { createRow } = createElements;
 
-// const username = prompt("Введите ваше имя:");
-const username = "max";
+const username = prompt("Введите ваше имя:");
+// const username = "max";
 let userTasks = JSON.parse(localStorage.getItem(username)) || [];
 
 function completeTask(event, taskId) {
