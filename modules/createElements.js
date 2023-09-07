@@ -76,16 +76,16 @@ function createTable() {
   return table;
 }
 
-function createRow({ id, text, status, type }) {
+function createRow({ id, text, status, type, color }) {
   const tr = document.createElement("tr");
-  tr.classList.add("row-tr");
+  tr.className = `row-tr ${color ? "purple" : ""}`;
   tr.innerHTML = `
     <td class="id">${id}</td>
     <td class="text ${type ? "text-decoration-line-through" : ""}">${text}</td>
     <td class="st">${status}</td>
     <td class="actions">
-      <button class="btn btn-warning">Изменить</button>
       <button class="btn btn-danger">Удалить</button>
+      <button class="btn btn-warning">Завершить</button>
     </td>`;
 
   return tr;
