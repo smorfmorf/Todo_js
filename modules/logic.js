@@ -1,68 +1,66 @@
-const username = prompt("Введите ваше имя:");
+import createElements from "./createElements.js";
+const { createRow } = createElements;
+
+// const username = prompt("Введите ваше имя:");
+const username = "max";
 let userTasks = JSON.parse(localStorage.getItem(username)) || [];
 
-function completeTask(taskId) {
-  const task = userTasks.find((t) => t.id === taskId);
+function completeTask(event, taskId) {
+  const target = event.target;
+  const tr = target.closest("tr");
+  const td = tr.querySelector(".st");
+  const text = tr.querySelector(".text");
+  console.log("text: ", text);
+  text.classList.add("text-decoration-line-through");
+  td.textContent = "Выполнена";
+
+  const task = userTasks.find((t) => t.id == taskId);
+  console.log("task: ", task);
   if (task) {
     task.status = "Выполнена";
-    //text-decoration-line-through
-    console.log(task);
-
+    task.type = true;
     localStorage.setItem(username, JSON.stringify(userTasks));
-    renderTasks(userTasks);
   }
 }
 
-function deleteTask(taskId) {
-  userTasks = userTasks.filter((el) => el.id !== taskId);
+function deleteTask(event, taskId) {
+  const target = event.target;
+  const tr = target.closest("tr");
+  console.log("tr: ", tr);
+  tr.remove();
+  const tableBody = document.querySelector("tbody");
+  const rows = tableBody.querySelectorAll("tr");
+  rows.forEach((row, index) => {
+    const cells = row.querySelectorAll("td");
+    cells[0].textContent = index + 1; // Обновляем индексы в первой ячейке (нумерация с 1)
+  });
+
+  //* filter для массива userTasks
+  userTasks = userTasks.filter((task) => task.id !== taskId);
+  // Обновляем индексы в массиве userTasks
+  userTasks = userTasks.map((task, index) => ({ ...task, id: index + 1 }));
   localStorage.setItem(username, JSON.stringify(userTasks));
-  renderTasks(userTasks);
 }
 
-function renderTasks(tasks) {
+function renderTasks() {
   const tableBody = document.querySelector("tbody");
   tableBody.innerHTML = "";
-
-  tasks.forEach((task, index) => {
-    const row = document.createElement("tr");
-
-    const numberCell = document.createElement("td");
-    numberCell.textContent = index + 1;
-    row.append(numberCell);
-
-    const taskCell = document.createElement("td");
-    taskCell.textContent = task.text;
-    row.append(taskCell);
-
-    const statusCell = document.createElement("td");
-    statusCell.textContent = task.status;
-    row.append(statusCell);
-
-    const actionsCell = document.createElement("td");
-    const deleteButton = document.createElement("button");
-    deleteButton.textContent = "Удалить";
-    deleteButton.classList.add("btn", "btn-danger");
-    deleteButton.addEventListener("click", () => {
-      deleteTask(task.id);
+  userTasks.forEach((task, index) => {
+    const row = createRow({
+      id: index + 1,
+      text: task.text,
+      status: task.status,
+      type: task.type,
     });
-    actionsCell.append(deleteButton);
-
-    const completeButton = document.createElement("button");
-    completeButton.textContent = "Завершить";
-    completeButton.classList.add("btn", "btn-success");
-    completeButton.addEventListener("click", () => {
-      completeTask(task.id);
-    });
-    actionsCell.append(completeButton);
-
-    row.append(actionsCell);
 
     tableBody.append(row);
   });
+
+  return tableBody;
 }
 
 function initTodoApp() {
-  renderTasks(userTasks);
+  const tableBody = renderTasks();
 
   const taskInput = document.querySelector(".form-control");
 
@@ -83,20 +81,56 @@ function initTodoApp() {
     }
   });
 
-  saveButton.addEventListener("click", (e) => {
+  saveButton.addEventListener("click", addTask);
+  function addTask(e) {
     e.preventDefault();
     const taskText = taskInput.value.trim();
-    if (taskText !== "") {
-      const task = {
-        id: Date.now(),
-        text: taskText,
-        status: "В процессе",
-      };
-      userTasks.push(task);
-      taskInput.value = "";
-      localStorage.setItem(username, JSON.stringify(userTasks));
-      renderTasks(userTasks);
-    }
+
+    const task = {
+      id: userTasks.length + 1,
+      text: taskText,
+      status: "В процессе",
+      type: false,
+    };
+
+    userTasks.push(task);
+    console.log("userTasks: ", userTasks);
+    taskInput.value = "";
+    localStorage.setItem(username, JSON.stringify(userTasks));
+
+    const rowHTML = createRow(task);
+    tableBody.append(rowHTML);
+
+    const id = task.id;
+
+    //!удаляем задачу
+    const actionsCell = rowHTML.querySelector(".actions");
+    console.log("actionsCell: ", actionsCell);
+    const deleteButton = actionsCell.querySelector(".btn-danger");
+    deleteButton.addEventListener("click", (event) => {
+      deleteTask(event, id);
+    });
+    //!выполняем задачу
+    const completeButton = actionsCell.querySelector(".btn-warning");
+    completeButton.addEventListener("click", (event) => {
+      completeTask(event, id);
+    });
+  }
+
+  const rows = tableBody.querySelectorAll("tr");
+  rows.forEach((task) => {
+    const id = +task.querySelector(".id").textContent;
+    //!удаляем задачу
+    const actionsCell = task.querySelector(".actions");
+    const deleteButton = actionsCell.querySelector(".btn-danger");
+    deleteButton.addEventListener("click", (event) => {
+      deleteTask(event, id);
+    });
+    //!выполняем задачу
+    const completeButton = actionsCell.querySelector(".btn-warning");
+    completeButton.addEventListener("click", (event) => {
+      completeTask(event, id);
+    });
   });
 
   taskInput.addEventListener("keydown", (e) => {
