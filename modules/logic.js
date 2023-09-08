@@ -1,8 +1,8 @@
 import createElements from "./createElements.js";
 const { createRow } = createElements;
 
-const username = prompt("Введите ваше имя:");
-// let username = "max";
+// const username = prompt("Введите ваше имя:");
+let username = "max";
 let userTasks = JSON.parse(localStorage.getItem(username)) || [];
 
 function completeTask(event, taskId) {
@@ -11,7 +11,7 @@ function completeTask(event, taskId) {
   const td = tr.querySelector(".st");
   const text = tr.querySelector(".text");
   console.log("text: ", text);
-  tr.style.backgroundColor = "purple";
+  tr.style.backgroundColor = "rgb(113, 188, 157)";
   text.classList.add("text-decoration-line-through");
   td.textContent = "Выполнена";
 
@@ -64,16 +64,10 @@ function renderTasks() {
 }
 
 function initTodoApp() {
-  const tableBody = renderTasks();
+  renderTasks();
 
   const taskInput = document.querySelector(".form-control");
-
   const saveButton = document.querySelector(".btn-primary");
-  const clearButton = document.querySelector(".btn-warning");
-
-  clearButton.addEventListener("click", () => {
-    saveButton.disabled = true;
-  });
 
   saveButton.disabled = true;
 
@@ -85,51 +79,6 @@ function initTodoApp() {
     }
   });
 
-  saveButton.addEventListener("click", addTask);
-  function addTask(e) {
-    e.preventDefault();
-    const taskText = taskInput.value.trim();
-
-    const task = {
-      id: userTasks.length + 1,
-      text: taskText,
-      status: "В процессе",
-      type: false,
-      color: false,
-    };
-
-    userTasks.push(task);
-    console.log("userTasks: ", userTasks);
-    taskInput.value = "";
-    localStorage.setItem(username, JSON.stringify(userTasks));
-
-    const rowHTML = createRow(task);
-    tableBody.append(rowHTML);
-
-    const id = task.id;
-    //todo
-    //!удаляем задачу
-    const actionsCell = rowHTML.querySelector(".actions");
-
-    //!выполняем задачу
-    const completeButton = actionsCell.querySelector(".btn-warning");
-    completeButton.addEventListener("click", (event) => {
-      completeTask(event, id);
-    });
-  }
-
-  const rows = tableBody.querySelectorAll("tr");
-  rows.forEach((task) => {
-    const id = +task.querySelector(".id").textContent;
-    //!удаляем задачу
-    const actionsCell = task.querySelector(".actions");
-    //!выполняем задачу
-    const completeButton = actionsCell.querySelector(".btn-warning");
-    completeButton.addEventListener("click", (event) => {
-      completeTask(event, id);
-    });
-  });
-  //todo
   taskInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !saveButton.disabled) {
       saveButton.click();
@@ -137,7 +86,55 @@ function initTodoApp() {
     saveButton.disabled = true;
   });
 
+  const clearButton = document.querySelector(".btn-warning");
+  clearButton.addEventListener("click", () => {
+    saveButton.disabled = true;
+  });
+
   deleteTask();
+  addTask2();
+  completeTask2();
+}
+
+function completeTask2() {
+  const tableBody = document.querySelector("tbody");
+  tableBody.addEventListener("click", (e) => {
+    const target = e.target;
+
+    if (target.classList.contains("btn-warning")) {
+      const contact = target.closest("tr");
+      const id = +contact.querySelector(".id").textContent;
+      completeTask(e, id);
+    }
+  });
+}
+
+function addTask2() {
+  const tableBody = document.querySelector("tbody");
+  const form = document.querySelector("form");
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    //можно и так вытащить value из input
+    // const formData = new FormData(form);
+    // const obj = Object.fromEntries(formData);
+
+    let input = form.input.value.trim();
+    const task = {
+      id: userTasks.length + 1,
+      text: input,
+      status: "В процессе",
+      type: false,
+      color: false,
+    };
+    form.reset();
+
+    userTasks.push(task);
+    localStorage.setItem(username, JSON.stringify(userTasks));
+
+    const rowHTML = createRow(task);
+    tableBody.append(rowHTML);
+  });
 }
 
 //!Функция удаления задачи

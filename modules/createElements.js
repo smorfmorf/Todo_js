@@ -27,7 +27,7 @@ function createForm() {
   );
   form.innerHTML = `
     <label class="form-group me-3 mb-0">
-    <input type="text" class="form-control" placeholder="ввести задачу" />
+    <input name="input" type="text" class="form-control" placeholder="ввести задачу" />
   </label>
  `;
   const buttons = createButtons([
